@@ -39,22 +39,9 @@ Route::middleware('auth')->group(function () {
 
     // == RUTE PUBLIK (Semua yang login bisa akses) ==
     Route::get('/dashboard', function () {
-        $totalItems = Item::count();
-        $totalVendors = Vendor::count();
-        $totalValue = Item::select(DB::raw('SUM(current_stock * average_cost) as total'))
-                          ->first()
-                          ->total ?? 0;
-        $lowStockItems = Item::where('current_stock', '<', 10)
-                             ->orderBy('current_stock', 'asc')
-                             ->get();
-        $recentMovements = StockMovement::with(['item', 'vendor'])
-                                        ->orderBy('movement_date', 'desc')
-                                        ->limit(5)
-                                        ->get();
-        return view('dashboard', compact(
-            'totalItems', 'totalVendors', 'totalValue', 'lowStockItems', 'recentMovements'
-        ));
-    })->name('dashboard');
+    // Tidak perlu ambil data apa pun lagi
+    return view('dashboard'); 
+})->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

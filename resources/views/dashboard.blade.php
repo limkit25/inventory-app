@@ -3,115 +3,97 @@
 @section('title', 'Dashboard')
 
 @section('content_header')
-    <h1>Dashboard</h1>
+    <h1>Dashboard Utama</h1>
 @stop
 
 @section('content')
-    {{-- 1. Baris InfoBox --}}
-    <div class="row">
-        <div class="col-lg-4 col-6">
-            <x-adminlte-info-box title="Total Nilai Persediaan" 
-                text="Rp {{ number_format($totalValue, 2, ',', '.') }}" 
-                icon="fas fa-dollar-sign" theme="success"/>
-        </div>
-        <div class="col-lg-4 col-6">
-            <x-adminlte-info-box title="Total Master Barang" 
-                text="{{ $totalItems }} Jenis" 
-                icon="fas fa-box" theme="info"/>
-        </div>
-        <div class="col-lg-4 col-6">
-            <x-adminlte-info-box title="Total Vendor" 
-                text="{{ $totalVendors }} Vendor" 
-                icon="fas fa-truck" theme="purple"/>
-        </div>
-    </div>
+    <p>Selamat datang di Aplikasi Inventory!</p>
+    <hr>
+    <h4>Menu Utama:</h4>
 
-    {{-- 2. Baris Konten Utama (Stok Menipis & Transaksi Terakhir) --}}
     <div class="row">
 
-        {{-- Kolom Kiri: Stok Menipis --}}
-        <div class="col-lg-6">
-            <x-adminlte-card theme="danger" theme-mode="outline" 
-                             icon="fas fa-exclamation-triangle" title="Barang Stok Menipis (< 10)">
+        {{-- Kotak Menu Master Data --}}
+        @can('manage-master-data')
+            {{-- Tambahkan text-sm di sini --}}
+            <div class="col-lg-3 col-6 text-sm"> 
+                <x-adminlte-small-box title="Master Data" text="Barang, Vendor, Kategori" 
+                    {{-- Tambahkan fa-sm di sini --}}
+                    icon="fas fa-database fa-sm text-dark" 
+                    theme="info" 
+                    url="{{ route('items.index') }}" url-text="Lihat Data"/>
+            </div>
+        @endcan
 
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped">
-                        <thead>
-                            <tr>
-                                <th>Nama Barang</th>
-                                <th>Stok Saat Ini</th>
-                                <th>Satuan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($lowStockItems as $item)
-                                <tr>
-                                    <td>
-                                        <a href="{{ route('reports.stockcard.show', $item->id) }}">
-                                            {{ $item->name }}
-                                        </a>
-                                    </td>
-                                    <td><strong>{{ $item->current_stock }}</strong></td>
-                                    <td>{{ $item->unit }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3" class="text-center">Tidak ada barang yang stoknya menipis.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+        {{-- Kotak Menu Stok Masuk --}}
+        @can('perform-transactions')
+            <div class="col-lg-3 col-6 text-sm">
+                <x-adminlte-small-box title="Stok Masuk" text="Input Pembelian Baru" 
+                    icon="fas fa-arrow-circle-down fa-sm text-white" 
+                    theme="success" 
+                    url="{{ route('stock.in.create') }}" url-text="Input Stok Masuk"/>
+            </div>
+        @endcan
 
-            </x-adminlte-card>
-        </div>
+        {{-- Kotak Menu Stok Keluar --}}
+        @can('perform-transactions')
+            <div class="col-lg-3 col-6 text-sm">
+                <x-adminlte-small-box title="Stok Keluar" text="Input Pemakaian Barang" 
+                    icon="fas fa-arrow-circle-up fa-sm text-white" 
+                    theme="danger" 
+                    url="{{ route('stock.out.create') }}" url-text="Input Stok Keluar"/>
+            </div>
+        @endcan
+        
+        {{-- Kotak Menu Penyesuaian Stok --}}
+        @can('perform-transactions')
+             <div class="col-lg-3 col-6 text-sm">
+                <x-adminlte-small-box title="Penyesuaian Stok" text="Ajukan Stock Opname" 
+                    icon="fas fa-edit fa-sm text-dark" 
+                    theme="warning" 
+                    url="{{ route('stock.adjustment.create') }}" url-text="Buat Pengajuan"/>
+            </div>
+        @endcan
 
-        {{-- Kolom Kanan: Transaksi Terakhir --}}
-        <div class="col-lg-6">
-            <x-adminlte-card theme="info" theme-mode="outline" 
-                             icon="fas fa-history" title="5 Transaksi Terakhir">
+        {{-- Kotak Menu Persetujuan Stok --}}
+        @can('approve-adjustments')
+             <div class="col-lg-3 col-6 text-sm">
+                <x-adminlte-small-box title="Persetujuan Stok" text="Approve/Reject SO" 
+                    icon="fas fa-check-circle fa-sm text-white" 
+                    theme="teal" 
+                    url="{{ route('adjustments.index') }}" url-text="Lihat Pengajuan"/>
+            </div>
+        @endcan
 
-                <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th>Tipe</th>
-                                <th>Barang</th>
-                                <th>Qty</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($recentMovements as $mov)
-                                <tr>
-                                    <td>{{ $mov->movement_date }}</td>
-                                    <td>
-                                        @if($mov->type == 'in')
-                                            <span class="badge badge-success">Masuk</span>
-                                        @else
-                                            <span class="badge badge-danger">Keluar</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ $mov->item->name }}</td>
-                                    <td>
-                                        @if($mov->type == 'in')
-                                            +{{ $mov->quantity }}
-                                        @else
-                                            -{{ $mov->quantity }}
-                                        @endif
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="text-center">Belum ada transaksi.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+        {{-- Kotak Menu Laporan --}}
+        @can('view-reports')
+            <div class="col-lg-3 col-6 text-sm">
+                <x-adminlte-small-box title="Laporan" text="Stok Akhir, Kartu Stok, dll" 
+                    icon="fas fa-chart-bar fa-sm text-white" 
+                    theme="primary" 
+                    url="{{ route('reports.inventory.index') }}" url-text="Lihat Laporan"/>
+            </div>
+        @endcan
 
-            </x-adminlte-card>
-        </div>
+        @can('view-reports') {{-- Izinnya sama dengan Laporan lain --}}
+            <div class="col-lg-3 col-6 text-sm">
+                <x-adminlte-small-box title="Riwayat SO" text="Lihat Semua Penyesuaian"
+                    icon="fas fa-history fa-sm text-dark" {{-- Ikon & warna berbeda --}}
+                    theme="lightblue" {{-- Tema warna berbeda --}}
+                    url="{{ route('adjustments.history') }}" url-text="Lihat Riwayat"/>
+            </div>
+        @endcan
 
-    </div>
+        {{-- Kotak Menu Manajemen Pengguna --}}
+         @can('manage-users')
+            <div class="col-lg-3 col-6 text-sm">
+                <x-adminlte-small-box title="Manajemen Pengguna" text="Kelola User & Role" 
+                    icon="fas fa-users-cog fa-sm text-white" 
+                    theme="secondary" 
+                    url="{{ route('users.index') }}" url-text="Kelola Pengguna"/>
+            </div>
+        @endcan
+
+    </div> 
+    {{-- Akhir div class="row" --}}
 @stop
