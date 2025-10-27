@@ -30,6 +30,42 @@
     {{-- Box Tabel Riwayat --}}
     <x-adminlte-card theme="primary" theme-mode="outline" title="Riwayat Pergerakan Stok">
         
+        {{-- =============================================== --}}
+        {{-- FORM FILTER TANGGAL BARU KITA --}}
+        {{-- =============================================== --}}
+        <form method="GET" action="{{ route('reports.stockcard.show', $item->id) }}" class="mb-4">
+            <div class="row">
+                <div class="col-md-5">
+                    {{-- 
+                      - Kita gunakan type="date" standar browser, tidak perlu plugin
+                      - value="{{ $startDate ?? '' }}" akan mengisi kembali tanggal
+                        yang sudah difilter
+                    --}}
+                    <x-adminlte-input name="start_date" label="Tanggal Mulai" type="date"
+                        value="{{ $startDate ?? '' }}" />
+                </div>
+                <div class="col-md-5">
+                    <x-adminlte-input name="end_date" label="Tanggal Selesai" type="date"
+                        value="{{ $endDate ?? '' }}" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                        <a href="{{ route('reports.stockcard.show', $item->id) }}" class="btn btn-default" title="Reset Filter">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <hr>
+        {{-- =============================================== --}}
+        {{-- AKHIR DARI FORM FILTER --}}
+        {{-- =============================================== --}}
+
+
         <a href="{{ route('reports.inventory.index') }}" class="btn btn-secondary mb-3">
             <i class="fas fa-arrow-left"></i> Kembali ke Laporan Stok Akhir
         </a>
@@ -46,6 +82,7 @@
         ];
 
         $config = [
+            'data' => [], // <-- KITA KOSONGKAN, KARENA DIISI LOOP DI BAWAH
             'order' => [[0, 'desc']], // Urutkan berdasarkan tanggal, terbaru di atas
             'paging' => true,
             'searching' => false,
@@ -54,42 +91,30 @@
         ];
         @endphp
 
-        <x-adminlte-datatable id="table-stockcard" :heads="$heads" :config="$config" striped hoverable bordered compressed>
-            @foreach($movements as $mov)
-                <tr>
-                    <td>{{ $mov->movement_date }}</td>
-                    <td>
-                        @if($mov->type == 'in')
-                            <span class="badge badge-success">Stok Masuk</span>
-                        @else
-                            <span class="badge badge-danger">Stok Pakai</span>
-                        @endif
-                    </td>
-                    <td>
-                        {{-- Jika stok masuk, tampilkan nama vendor. Jika stok keluar, tampilkan catatan --}}
-                        {{ $mov->vendor->name ?? $mov->notes ?? '-' }}
-                    </td>
-                    
-                    {{-- Pisahkan kolom Masuk dan Keluar --}}
-                    <td>
-                        @if($mov->type == 'in')
-                            <strong>+{{ $mov->quantity }}</strong>
-                        @else
-                            -
-                        @endif
-                    </td>
-                    <td>
-                        @if($mov->type == 'out')
-                            <strong>-{{ $mov->quantity }}</strong>
-                        @else
-                            -
-                        @endif
-                    </td>
-                    
-                    <td class="text-right">Rp {{ number_format($mov->cost_per_unit, 2, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($mov->total_cost, 2, ',', '.') }}</td>
-                </tr>
-            @endforeach
-        </x-adminlte-datatable>
+        {{-- Mengisi data untuk Datatable --}}
+        @forelse($movements as $mov)
+            @php
+                $tipe = $mov->type == 'in' ? '<span class="badge badge-success">Stok Masuk</span>' : '<span class="badge badge-danger">Stok Pakai</span>';
+                $keterangan = $mov->vendor->name ?? $mov->notes ?? '-';
+                $masuk = $mov->type == 'in' ? '<strong>+' . $mov->quantity . '</strong>' : '-';
+                $keluar = $mov->type == 'out' ? '<strong>-' . $mov->quantity . '</strong>' : '-';
+                
+                $config['data'][] = [
+                    $mov->movement_date,
+                    $tipe,
+                    $keterangan,
+                    $masuk,
+                    $keluar,
+                    'Rp ' . number_format($mov->cost_per_unit, 2, ',', '.'),
+                    'Rp ' . number_format($mov->total_cost, 2, ',', '.'),
+                ];
+            @endphp
+        @empty
+            {{-- Biarkan kosong, datatable akan menampilkan "No matching records found" --}}
+        @endforelse
+
+        {{-- Tampilkan Datatable --}}
+        <x-adminlte-datatable id="table-stockcard" :heads="$heads" :config="$config" striped hoverable bordered compressed/>
+    
     </x-adminlte-card>
 @stop
