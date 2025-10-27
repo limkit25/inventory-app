@@ -29,6 +29,7 @@
             'ID',
             'SKU', // <-- TAMBAHAN BARU
             'Nama Barang',
+            'Kategori',
             'Satuan',
             'Stok Akhir',
             'Harga Rata-rata (HPP)', 
@@ -43,6 +44,7 @@
                 ['data' => 'id', 'width' => '5%'],
                 ['data' => 'sku'], // <-- TAMBAHAN BARU
                 ['data' => 'name'],
+                ['data' => 'category'], // <-- TAMBAHKAN KOLOM BARU
                 ['data' => 'unit'],
                 ['data' => 'stock', 'className' => 'text-bold'],
                 ['data' => 'avg_cost', 'className' => 'text-right'],
@@ -70,6 +72,7 @@
                     'id' => $item->id,
                     'sku' => $item->sku ?? '-', // <-- TAMBAHAN BARU
                     'name' => $item->name,
+                    'category' => $item->category->name ?? '-', // <-- AMBIL NAMA KATEGORI DARI RELASI
                     'unit' => $item->unit,
                     'stock' => $item->current_stock,
                     'avg_cost' => 'Rp ' . number_format($item->average_cost, 2, ',', '.'),

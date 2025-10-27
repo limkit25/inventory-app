@@ -255,6 +255,11 @@ return [
                     'route'  => 'vendors.index',
                     'icon' => 'fas fa-fw fa-truck',
                 ],
+                [
+                    'text' => 'Data Kategori',
+                    'route'  => 'categories.index',
+                    'icon' => 'fas fa-fw fa-tags',
+                ],
             ],
         ],
         [
@@ -299,6 +304,11 @@ return [
                     'route'  => 'reports.inventory.index',
                     'icon' => 'fas fa-fw fa-warehouse',
                 ],
+                [
+                'text' => 'Riwayat Stock Opname',
+                'route'  => 'adjustments.history',
+                'icon' => 'fas fa-fw fa-history',
+            ],
             ],
         ],
     ],

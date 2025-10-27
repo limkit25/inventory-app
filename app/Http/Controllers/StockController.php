@@ -171,29 +171,44 @@ class StockController extends Controller
 
         // Hitung selisihnya
         $quantityDifference = $stockPhysical - $stockInSystem;
-
-        if ($quantityDifference == 0) {
-            return redirect()->route('stock.adjustment.create')
-                             ->with('error', 'Stok fisik sama dengan stok sistem. Tidak ada penyesuaian yang dibuat.');
-        }
+        $redirectMessage = ''; // Siapkan variabel pesan
 
         try {
-            // Membuat data PENDING di tabel 'stock_adjustments'
+            if ($quantityDifference == 0) {
+            // JIKA TIDAK ADA SELISIH: Tetap buat record, tapi langsung 'approved'
             StockAdjustment::create([
                 'item_id'         => $item->id,
-                'user_id'         => Auth::id(), // ID pengguna yang sedang login
+                'user_id'         => Auth::id(),
+                'status'          => 'approved', // Langsung approved
+                'stock_in_system' => $stockInSystem,
+                'stock_physical'  => $stockPhysical,
+                'quantity'        => 0, // Selisihnya 0
+                'notes'           => $request->notes . ' (Stok Cocok)', // Tambahkan keterangan
+                'approved_by'     => Auth::id(), // Dianggap diapprove oleh yg cek
+                'approved_at'     => now(),
+            ]);
+            $redirectMessage = 'Hasil Stock Opname cocok dengan sistem dan sudah tercatat.';
+
+        } else {
+            // JIKA ADA SELISIH: Buat record PENDING (seperti sebelumnya)
+            StockAdjustment::create([
+                'item_id'         => $item->id,
+                'user_id'         => Auth::id(),
                 'status'          => 'pending',
                 'stock_in_system' => $stockInSystem,
                 'stock_physical'  => $stockPhysical,
                 'quantity'        => $quantityDifference,
                 'notes'           => $request->notes,
             ]);
-
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
+            $redirectMessage = 'Pengajuan penyesuaian stok berhasil dikirim dan menunggu persetujuan.';
         }
 
-        return redirect()->route('reports.inventory.index')
-                         ->with('success', 'Pengajuan penyesuaian stok berhasil dikirim dan menunggu persetujuan.');
+    } catch (\Exception $e) {
+        return back()->with('error', $e->getMessage());
+    }
+
+    // Redirect dengan pesan yang sesuai
+    return redirect()->route('reports.inventory.index') // Atau ke halaman lain
+                     ->with('success', $redirectMessage);
     }
 }

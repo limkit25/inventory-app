@@ -12,6 +12,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\StockAdjustmentController;
+use App\Http\Controllers\CategoryController;
 
 // Model dan Facade untuk Rute Dashboard
 use App\Models\Item;
@@ -68,6 +69,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('permission:manage-master-data')->group(function () {
         Route::resource('items', ItemController::class);
         Route::resource('vendors', VendorController::class);
+        Route::resource('categories', CategoryController::class);
     });
 
 
@@ -102,6 +104,8 @@ Route::middleware('auth')->group(function () {
         Route::get('reports/inventory', [InventoryReportController::class, 'index'])->name('reports.inventory.index');
         Route::get('reports/stockcard/{item}', [InventoryReportController::class, 'showStockCard'])->name('reports.stockcard.show');
         Route::get('reports/inventory/export', [InventoryReportController::class, 'exportExcel'])->name('reports.inventory.export');
+        Route::get('reports/adjustments', [StockAdjustmentController::class, 'history'])->name('adjustments.history');
+        Route::get('reports/adjustments/export', [StockAdjustmentController::class, 'exportHistoryExcel'])->name('adjustments.history.export');
     });
 
 });

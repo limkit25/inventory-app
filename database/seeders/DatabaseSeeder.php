@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
         // PANGGIL USERSEEDER KITA DI SINI
         $this->call([
             UserSeeder::class,
+            CategorySeeder::class,
             VendorSeeder::class, // <-- TAMBAHKAN INI
             ItemSeeder::class,   // <-- TAMBAHKAN INI
         ]);

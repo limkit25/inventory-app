@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule; // Kita perlukan ini untuk validasi
+use App\Models\Category;
 
 class ItemController extends Controller
 {
@@ -13,7 +14,8 @@ class ItemController extends Controller
      */
     public function index()
     {
-        $items = Item::orderBy('name')->get();
+        // Ambil relasi category menggunakan 'with()' agar lebih efisien
+        $items = Item::with('category')->orderBy('name')->get(); 
         return view('master.items.index', compact('items'));
     }
 
@@ -22,7 +24,9 @@ class ItemController extends Controller
      */
     public function create()
     {
-        return view('master.items.create');
+        // Ambil semua kategori untuk dropdown
+        $categories = Category::orderBy('name')->pluck('name', 'id'); 
+        return view('master.items.create', compact('categories'));
     }
 
     /**
@@ -32,6 +36,7 @@ class ItemController extends Controller
     {
         $validatedData = $request->validate([
             'name' => 'required|string|max:255|unique:items,name',
+            'category_id' => 'required|exists:categories,id', // <-- Tambah validasi
             'unit' => 'required|string|max:50',
             'sku' => 'nullable|string|max:100|unique:items,sku',
         ]);
@@ -55,8 +60,9 @@ class ItemController extends Controller
      */
     public function edit(Item $item)
     {
-        // $item otomatis diambil oleh Laravel (Route Model Binding)
-        return view('master.items.edit', compact('item'));
+        // Ambil semua kategori untuk dropdown
+        $categories = Category::orderBy('name')->pluck('name', 'id'); 
+        return view('master.items.edit', compact('item', 'categories'));
     }
 
     /**
@@ -66,30 +72,31 @@ class ItemController extends Controller
      */
     public function update(Request $request, Item $item)
     {
-        // 1. Validasi input
+        // 1. Validasi input (Pastikan category_id ada di sini)
         $validatedData = $request->validate([
             'name' => [
                 'required', 'string', 'max:255',
-                Rule::unique('items')->ignore($item->id), // Unik, tapi abaikan ID saat ini
+                Rule::unique('items')->ignore($item->id),
             ],
+            'category_id' => 'required|exists:categories,id', // <-- WAJIB ADA
             'unit' => 'required|string|max:50',
             'sku' => [
                 'nullable', 'string', 'max:100',
-                Rule::unique('items')->ignore($item->id), // Unik, tapi abaikan ID saat ini
+                Rule::unique('items')->ignore($item->id),
             ],
         ]);
         
-        // 2. Tidak mengizinkan update 'current_stock' atau 'average_cost' dari sini.
-        // Data itu HANYA boleh diubah oleh InventoryService.
-        // Kita hanya ambil data yang aman untuk di-update.
+        // 2. Siapkan data yang akan disimpan
+        //    PASTIKAN category_id DIMASUKKAN KE ARRAY INI
         $safeData = [
             'name' => $validatedData['name'],
+            'category_id' => $validatedData['category_id'], // <-- PASTIKAN INI ADA
             'unit' => $validatedData['unit'],
             'sku' => $validatedData['sku'],
         ];
 
         // 3. Update data di database
-        $item->update($safeData);
+        $item->update($safeData); // $item->update() akan menggunakan $fillable
 
         // 4. Redirect kembali ke halaman index dengan pesan sukses
         return redirect()->route('items.index')

@@ -6,6 +6,8 @@ use App\Models\StockAdjustment;
 use App\Services\InventoryService; // <-- Panggil InventoryService
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Exports\StockAdjustmentHistoryExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class StockAdjustmentController extends Controller
@@ -97,4 +99,37 @@ class StockAdjustmentController extends Controller
         return redirect()->route('adjustments.index')
                          ->with('success', 'Pengajuan stok berhasil ditolak.');
     }
+    public function history(Request $request) // <-- Tambahkan Request $request
+{
+    // 1. Ambil input tanggal
+    $startDate = $request->input('start_date');
+    $endDate = $request->input('end_date');
+
+    // 2. Buat query dasar
+    $query = StockAdjustment::with(['item', 'requestor', 'approver'])
+                            ->orderBy('created_at', 'desc'); // Tanggal pengajuan
+
+    // 3. Tambahkan filter HANYA JIKA kedua tanggal diisi
+    if ($startDate && $endDate) {
+        // Filter berdasarkan tanggal PENGAJUAN (created_at)
+        $query->whereBetween('created_at', [
+            $startDate . ' 00:00:00',
+            $endDate . ' 23:59:59'
+        ]);
+    }
+
+    // 4. Eksekusi query
+    $adjustments = $query->get();
+
+    // 5. Kirim data (termasuk nilai filter) ke view
+    return view('reports.adjustment_history', compact(
+        'adjustments', 
+        'startDate', 
+        'endDate'
+    ));
+}   
+public function exportHistoryExcel()
+{
+    return Excel::download(new StockAdjustmentHistoryExport, 'riwayat_stock_opname.xlsx');
+}
 }
