@@ -9,7 +9,6 @@
 @section('content')
     <x-adminlte-card theme="info" icon="fas fa-warehouse" title="Posisi Nilai Persediaan Saat Ini">
 
-        {{-- KEMBALIKAN BLOK INI --}}
         @if(session('success'))
             <x-adminlte-alert theme="success" title="Success" dismissable>
                 {{ session('success') }}
@@ -20,7 +19,6 @@
                 {{ session('error') }}
             </x-adminlte-alert>
         @endif
-        {{-- SAMPAI SINI --}}
 
         <a href="{{ route('reports.inventory.export') }}" class="btn btn-success mb-3">
             <i class="fas fa-file-excel"></i> Ekspor ke Excel
@@ -28,18 +26,35 @@
 
         @php
         $heads = [
-            'ID', 'Nama Barang', 'Satuan', 'Stok Akhir', 'Harga Rata-rata (HPP)', 
-            'Total Nilai Persediaan', ['label' => 'Actions', 'no-export' => true, 'width' => 5],
+            'ID',
+            'SKU', // <-- TAMBAHAN BARU
+            'Nama Barang',
+            'Satuan',
+            'Stok Akhir',
+            'Harga Rata-rata (HPP)', 
+            'Total Nilai Persediaan', 
+            ['label' => 'Actions', 'no-export' => true, 'width' => 5],
         ];
-        $config = ['data' => [], 'order' => [[1, 'asc']], 'columns' => [
-                ['data' => 'id', 'width' => '5%'], ['data' => 'name'], ['data' => 'unit'],
+
+        $config = [
+            'data' => [],
+            'order' => [[1, 'asc']],
+            'columns' => [
+                ['data' => 'id', 'width' => '5%'],
+                ['data' => 'sku'], // <-- TAMBAHAN BARU
+                ['data' => 'name'],
+                ['data' => 'unit'],
                 ['data' => 'stock', 'className' => 'text-bold'],
                 ['data' => 'avg_cost', 'className' => 'text-right'],
                 ['data' => 'total_value', 'className' => 'text-bold text-right'],
                 ['data' => 'actions', 'orderable' => false, 'searchable' => false],
             ],
-            'paging' => true, 'lengthMenu' => [ 10, 25, 50, 100 ], 'searching' => true,
-            'info' => true, 'responsive' => true, 'autoWidth' => false,
+            'paging' => true,
+            'lengthMenu' => [ 10, 25, 50, 100 ],
+            'searching' => true,
+            'info' => true,
+            'responsive' => true,
+            'autoWidth' => false,
         ];
         @endphp
 
@@ -50,8 +65,12 @@
                                  title="Lihat Kartu Stok">
                                  <i class="fa fa-lg fa-fw fa-eye"></i>
                              </a>';
+
                 $config['data'][] = [
-                    'id' => $item->id, 'name' => $item->name, 'unit' => $item->unit,
+                    'id' => $item->id,
+                    'sku' => $item->sku ?? '-', // <-- TAMBAHAN BARU
+                    'name' => $item->name,
+                    'unit' => $item->unit,
                     'stock' => $item->current_stock,
                     'avg_cost' => 'Rp ' . number_format($item->average_cost, 2, ',', '.'),
                     'total_value' => 'Rp ' . number_format($item->current_stock * $item->average_cost, 2, ',', '.'),

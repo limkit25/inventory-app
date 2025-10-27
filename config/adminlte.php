@@ -280,6 +280,13 @@ return [
                     'icon' => 'fas fa-fw fa-edit',
                     'icon_color' => 'warning',
                 ],
+                [
+                'text' => 'Persetujuan Stok',
+                'route'  => 'adjustments.index',
+                'icon' => 'fas fa-fw fa-check-circle',
+                'icon_color' => 'info',
+                'can'  => 'approve-adjustments' // Hanya Admin yang bisa lihat
+            ],
             ],
         ],
         [

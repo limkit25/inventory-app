@@ -9,7 +9,6 @@
 @section('content')
     <x-adminlte-card theme="primary" theme-mode="outline">
 
-        {{-- KEMBALIKAN BLOK INI --}}
         @if(session('success'))
             <x-adminlte-alert theme="success" title="Success" dismissable>
                 {{ session('success') }}
@@ -20,7 +19,6 @@
                 {{ session('error') }}
             </x-adminlte-alert>
         @endif
-        {{-- SAMPAI SINI --}}
 
         <x-adminlte-button label="Tambah Barang Baru" 
                            theme="primary" 
@@ -30,12 +28,25 @@
 
         @php
         $heads = [
-            'ID', 'Nama Barang', 'Satuan', 'Stok Saat Ini', 'Harga Rata-rata (HPP)',
+            'ID',
+            'SKU', // <-- TAMBAHAN BARU
+            'Nama Barang',
+            'Satuan',
+            'Stok Saat Ini',
+            'Harga Rata-rata (HPP)',
             ['label' => 'Actions', 'no-export' => true, 'width' => 10],
         ];
-        $config = ['data' => [], 'order' => [[1, 'asc']], 'columns' => [
-                ['data' => 'id', 'width' => '5%'], ['data' => 'name'], ['data' => 'unit'],
-                ['data' => 'stock'], ['data' => 'cost', 'className' => 'text-right'],
+
+        $config = [
+            'data' => [], 
+            'order' => [[1, 'asc']],
+            'columns' => [
+                ['data' => 'id', 'width' => '5%'],
+                ['data' => 'sku'], // <-- TAMBAHAN BARU
+                ['data' => 'name'],
+                ['data' => 'unit'],
+                ['data' => 'stock'],
+                ['data' => 'cost', 'className' => 'text-right'],
                 ['data' => 'actions', 'orderable' => false, 'searchable' => false, 'width' => '10%'],
             ],
         ];
@@ -52,9 +63,14 @@
                                       <i class="fa fa-lg fa-fw fa-trash"></i>
                                   </button>
                               </form>';
+                
                 $config['data'][] = [
-                    'id' => $item->id, 'name' => $item->name, 'unit' => $item->unit,
-                    'stock' => $item->current_stock, 'cost' => 'Rp ' . number_format($item->average_cost, 2, ',', '.'),
+                    'id' => $item->id,
+                    'sku' => $item->sku ?? '-', // <-- TAMBAHAN BARU
+                    'name' => $item->name,
+                    'unit' => $item->unit,
+                    'stock' => $item->current_stock,
+                    'cost' => 'Rp ' . number_format($item->average_cost, 2, ',', '.'),
                     'actions' => '<nobr>' . $btnEdit . $btnDelete . '</nobr>',
                 ];
             @endphp

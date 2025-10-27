@@ -13,6 +13,7 @@ use App\Models\Vendor;
 use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\StockAdjustmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -116,5 +117,17 @@ Route::middleware('auth')->group(function () {
         Route::get('reports/stockcard/{item}', [InventoryReportController::class, 'showStockCard'])->name('reports.stockcard.show');
         Route::get('reports/inventory/export', [InventoryReportController::class, 'exportExcel'])->name('reports.inventory.export');
     });
+
+    Route::middleware('permission:approve-adjustments')->group(function () {
+
+    // Halaman utama daftar persetujuan
+    Route::get('adjustments', [StockAdjustmentController::class, 'index'])->name('adjustments.index');
+
+    // Rute untuk tombol Approve
+    Route::post('adjustments/{adjustment}/approve', [StockAdjustmentController::class, 'approve'])->name('adjustments.approve');
+
+    // Rute untuk tombol Reject
+    Route::post('adjustments/{adjustment}/reject', [StockAdjustmentController::class, 'reject'])->name('adjustments.reject');
+});
 
 });

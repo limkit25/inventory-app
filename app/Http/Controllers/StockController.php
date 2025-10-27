@@ -6,6 +6,9 @@ use App\Models\Item;
 use App\Models\Vendor;
 use App\Services\InventoryService;
 use Illuminate\Http\Request;
+use App\Models\StockAdjustment; // <-- TAMBAHKAN INI
+use Illuminate\Support\Facades\Auth; // <-- TAMBAHKAN INI
+
 
 class StockController extends Controller {
     protected $inventoryService;
@@ -65,24 +68,46 @@ class StockController extends Controller {
      * Route: stock.adjustment.store
      */
     public function storeAdjustment(Request $request)
-    {
-        $request->validate([
-            'item_id' => 'required|exists:items,id',
-            'new_physical_stock' => 'required|integer|min:0', // Stok baru bisa 0
-            'notes' => 'required|string|max:255', // Wajib diisi alasan penyesuaian
+{
+    $request->validate([
+        'item_id' => 'required|exists:items,id',
+        'new_physical_stock' => 'required|integer|min:0', // Stok baru bisa 0
+        'notes' => 'required|string|max:255', // Wajib diisi alasan penyesuaian
+    ]);
+
+    // AMBIL DATA ITEM SAAT INI
+    $item = Item::findOrFail($request->item_id);
+    $stockInSystem = $item->current_stock;
+    $stockPhysical = $request->new_physical_stock;
+
+    // Hitung selisihnya
+    $quantityDifference = $stockPhysical - $stockInSystem;
+
+    // Jika tidak ada perubahan, tidak perlu buat pengajuan
+    if ($quantityDifference == 0) {
+        return redirect()->route('stock.adjustment.create')
+                         ->with('error', 'Stok fisik sama dengan stok sistem. Tidak ada penyesuaian yang dibuat.');
+    }
+
+    // --- INI LOGIKA BARUNYA ---
+    // Bukan lagi memanggil InventoryService, tapi membuat data baru
+    try {
+        StockAdjustment::create([
+            'item_id'         => $item->id,
+            'user_id'         => Auth::id(), // ID pengguna yang sedang login
+            'status'          => 'pending',
+            'stock_in_system' => $stockInSystem,
+            'stock_physical'  => $stockPhysical,
+            'quantity'        => $quantityDifference, // (bisa + atau -)
+            'notes'           => $request->notes,
         ]);
 
-        try {
-            $this->inventoryService->adjustStock(
-                $request->item_id,
-                $request->new_physical_stock,
-                $request->notes
-            );
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
-        }
-
-        return redirect()->route('reports.inventory.index')
-                         ->with('success', 'Penyesuaian stok berhasil disimpan.');
+    } catch (\Exception $e) {
+        return back()->with('error', $e->getMessage());
     }
+
+    // Ubah pesan suksesnya
+    return redirect()->route('reports.inventory.index')
+                     ->with('success', 'Pengajuan penyesuaian stok berhasil dikirim dan menunggu persetujuan.');
+}
 }
