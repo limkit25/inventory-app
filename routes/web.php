@@ -13,6 +13,7 @@ use App\Http\Controllers\VendorController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\StockAdjustmentController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\RoleController;
 
 // Model dan Facade untuk Rute Dashboard
 use App\Models\Item;
@@ -27,7 +28,7 @@ Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('dashboard');
     }
-    return redirect()->route('login'); 
+    return redirect()->route('login');
 });
 
 // Rute Autentikasi (Login, Register, dll.)
@@ -39,9 +40,9 @@ Route::middleware('auth')->group(function () {
 
     // == RUTE PUBLIK (Semua yang login bisa akses) ==
     Route::get('/dashboard', function () {
-    // Tidak perlu ambil data apa pun lagi
-    return view('dashboard'); 
-})->name('dashboard');
+        // Tidak perlu ambil data apa pun lagi
+        return view('dashboard');
+    })->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -49,7 +50,11 @@ Route::middleware('auth')->group(function () {
 
 
     // == RUTE MANAJEMEN PENGGUNA (Hanya Admin) ==
-    Route::resource('users', UserController::class)->middleware('permission:manage-users');
+    // Middleware dipindahkan ke grup
+    Route::middleware('permission:manage-users')->group(function () {
+        Route::resource('users', UserController::class);
+        Route::resource('roles', RoleController::class); // <-- SUDAH DIPINDAHKAN KE DALAM
+    });
 
 
     // == RUTE MASTER DATA (Hanya yang punya izin 'manage-master-data') ==
@@ -65,10 +70,10 @@ Route::middleware('auth')->group(function () {
         // Ini adalah rute untuk form multi-item kita
         Route::get('stock/in', [StockController::class, 'createStockIn'])->name('stock.in.create');
         Route::post('stock/in', [StockController::class, 'storeStockIn'])->name('stock.in.store');
-        
+
         Route::get('stock/out', [StockController::class, 'createStockOut'])->name('stock.out.create');
         Route::post('stock/out', [StockController::class, 'storeStockOut'])->name('stock.out.store');
-        
+
         // Ini rute untuk MENGAJUKAN penyesuaian
         Route::get('stock/adjustment', [StockController::class, 'createAdjustment'])->name('stock.adjustment.create');
         Route::post('stock/adjustment', [StockController::class, 'storeAdjustment'])->name('stock.adjustment.store');

@@ -218,32 +218,31 @@ return [
             'text'        => 'Dashboard',
             'route'       => 'dashboard',
             'icon'        => 'fas fa-fw fa-tachometer-alt',
-            // Tidak perlu 'can', semua yang login bisa lihat dashboard
+            'icon_color'  => 'primary', // Warna contoh
         ],
-
-        // --- MANAJEMEN PENGGUNA (Akan kita buat) ---
         [
-            'text' => 'MANAJEMEN PENGGUNA',
+            'text' => 'MANAJEMEN USER',
             'icon' => 'fas fa-fw fa-users-cog',
-            'can'  => 'manage-users', // Nanti kita buat permission ini
+            'icon_color'  => 'purple', // Warna contoh
+            'can'  => 'manage-users', 
             'submenu' => [
                 [
-                    'text' => 'Data Pengguna',
+                    'text' => 'Data User',
                     'route'  => 'users.index',
                     'icon' => 'fas fa-fw fa-users',
                 ],
-                // [
-                //     'text' => 'Hak Akses (Roles)',
-                //     'route'  => 'roles.index',
-                //     'icon' => 'fas fa-fw fa-lock',
-                // ],
+                [
+                    'text' => 'Hak Akses (Roles)',
+                    'route'  => 'roles.index',
+                    'icon' => 'fas fa-fw fa-lock',
+                ],
             ],
         ],
-
         [
             'text' => 'MASTER DATA',
             'icon' => 'fas fa-fw fa-database',
-            'can'  => 'manage-master-data', // <-- PERUBAHAN
+            'icon_color'  => 'info', // Warna contoh
+            'can'  => 'manage-master-data', 
             'submenu' => [
                 [
                     'text' => 'Data Barang',
@@ -265,7 +264,8 @@ return [
         [
             'text' => 'TRANSAKSI',
             'icon' => 'fas fa-fw fa-exchange-alt',
-            'can'  => 'perform-transactions', // <-- PERUBAHAN
+            'icon_color'  => 'success', // Warna contoh
+            'can'  => 'perform-transactions', 
             'submenu' => [
                 [
                     'text' => 'Stok Masuk / Awal',
@@ -285,19 +285,24 @@ return [
                     'icon' => 'fas fa-fw fa-edit',
                     'icon_color' => 'warning',
                 ],
-                [
-                'text' => 'Persetujuan Stok',
-                'route'  => 'adjustments.index',
-                'icon' => 'fas fa-fw fa-check-circle',
-                'icon_color' => 'info',
-                'can'  => 'approve-adjustments' // Hanya Admin yang bisa lihat
-            ],
             ],
         ],
+        // ===============================================
+        // INI YANG SUDAH DIPERBAIKI (TANPA SUBMENU)
+        // ===============================================
+        [
+            'text'       => 'PERSETUJUAN SO', 
+            'route'      => 'adjustments.index', 
+            'icon'       => 'fas fa-fw fa-check-circle',
+            'icon_color' => 'teal', // Warna contoh (bisa diganti)
+            'can'        => 'approve-adjustments' 
+        ],
+        // ===============================================
         [
             'text' => 'LAPORAN',
             'icon' => 'fas fa-fw fa-chart-bar',
-            'can'  => 'view-reports', // <-- PERUBAHAN
+            'icon_color'  => 'warning', // Warna contoh
+            'can'  => 'view-reports', 
             'submenu' => [
                 [
                     'text' => 'Laporan Stok Akhir',
@@ -305,13 +310,13 @@ return [
                     'icon' => 'fas fa-fw fa-warehouse',
                 ],
                 [
-                'text' => 'Riwayat Stock Opname',
-                'route'  => 'adjustments.history',
-                'icon' => 'fas fa-fw fa-history',
-            ],
+                    'text' => 'Riwayat Stock Opname',
+                    'route'  => 'adjustments.history',
+                    'icon' => 'fas fa-fw fa-history',
+                ],
             ],
         ],
-    ],
+    ], // Akhir dari array 'menu' utama
 
     /*
     |--------------------------------------------------------------------------
